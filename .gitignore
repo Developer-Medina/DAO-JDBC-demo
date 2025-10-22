@@ -22,3 +22,7 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+
+#ignorar narquivos de configurações de banco de dados
+project/src/resources/db.properties
