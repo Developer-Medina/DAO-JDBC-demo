@@ -26,3 +26,5 @@ replay_pid*
 
 #ignorar narquivos de configurações de banco de dados
 project/src/resources/db.properties
+/out
+/.idea
