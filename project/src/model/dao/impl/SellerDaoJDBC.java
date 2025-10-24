@@ -1,12 +1,25 @@
 package model.dao.impl;
 
+import db.DB;
+import db.DbException;
 import model.dao.SellerDao;
+import model.entities.Department;
 import model.entities.Seller;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public class SellerDaoJDBC implements SellerDao {
 
+    //Dependencia da Conexao. O objeto de conexao estara a nossa disposicao aqui dentro
+    private final Connection connection;
+
+    public SellerDaoJDBC(Connection connection) {
+        this.connection = connection;
+    }
 
     @Override
     public void insert(Seller obj) {
@@ -25,7 +38,50 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public Seller findById(Integer id) {
-        return null;
+
+        PreparedStatement ps = null; //Nosso comando SQL
+        ResultSet rs = null; //Nosso resultado do BD
+
+        try {
+            ps = connection.prepareStatement(
+                    "SELECT seller.*, department.Name as DepName "
+                    + "FROM seller INNER JOIN department "
+                    + "ON seller.DepartmentId = department.Id "
+                    + "WHERE seller.Id = ?" //Sem espaçuxo
+            );
+
+            ps.setInt(1, id);
+            rs = ps.executeQuery(); //O resultset recebe nossa query, mas ele aponta para posição 0, que não tem nosso objeto (ele só aparece na opção 1)
+
+            if(rs.next()) { //Checa se houve resultado
+
+                //Departamento
+                Department dep = new Department();
+                dep.setID(rs.getInt("DepartmentId")); //Da mesma forma que está no Banco de Dados
+                dep.setName(rs.getString("DepName"));
+
+                //Seller
+                Seller obj = new Seller();
+                obj.setId(rs.getInt("Id"));
+                obj.setName(rs.getString("Name"));
+                obj.setEmail(rs.getString("Email"));
+                obj.setBaseSalary(rs.getDouble("BaseSalary"));
+                obj.setBirthDate(rs.getDate("BirthDate"));
+                obj.setDepartment(dep); //Precisamos do Objeto montado em OO, não de um resultado SQL
+
+                return obj;
+            }
+
+            return null; //Porque if falha
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(ps);
+            DB.closeResultSet(rs);
+            //Não fechamos conexão aqui
+        }
+
     }
 
     @Override
