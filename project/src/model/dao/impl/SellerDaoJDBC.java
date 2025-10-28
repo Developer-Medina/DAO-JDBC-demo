@@ -54,21 +54,8 @@ public class SellerDaoJDBC implements SellerDao {
             rs = ps.executeQuery(); //O resultset recebe nossa query, mas ele aponta para posição 0, que não tem nosso objeto (ele só aparece na opção 1)
 
             if(rs.next()) { //Checa se houve resultado
-
-                //Departamento
-                Department dep = new Department();
-                dep.setID(rs.getInt("DepartmentId")); //Da mesma forma que está no Banco de Dados
-                dep.setName(rs.getString("DepName"));
-
-                //Seller
-                Seller obj = new Seller();
-                obj.setId(rs.getInt("Id"));
-                obj.setName(rs.getString("Name"));
-                obj.setEmail(rs.getString("Email"));
-                obj.setBaseSalary(rs.getDouble("BaseSalary"));
-                obj.setBirthDate(rs.getDate("BirthDate"));
-                obj.setDepartment(dep); //Precisamos do Objeto montado em OO, não de um resultado SQL
-
+                Department dep = instantiateDepartment(rs);
+                Seller obj = instantiateSeller(rs, dep);
                 return obj;
             }
 
@@ -81,6 +68,27 @@ public class SellerDaoJDBC implements SellerDao {
             DB.closeResultSet(rs);
             //Não fechamos conexão aqui
         }
+
+    }
+
+    private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
+
+        Seller obj = new Seller();
+        obj.setId(rs.getInt("Id"));
+        obj.setName(rs.getString("Name"));
+        obj.setEmail(rs.getString("Email"));
+        obj.setBaseSalary(rs.getDouble("BaseSalary"));
+        obj.setBirthDate(rs.getDate("BirthDate"));
+        obj.setDepartment(dep);
+
+        return obj;
+    }
+
+    private Department instantiateDepartment(ResultSet rs) throws SQLException { //Não trataremos exceção, a propagaremos
+        Department dep = new Department();
+        dep.setID(rs.getInt("DepartmentId"));
+        dep.setName(rs.getString("DepName"));
+        return dep;
 
     }
 
