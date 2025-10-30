@@ -10,7 +10,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SellerDaoJDBC implements SellerDao {
 
@@ -95,6 +98,55 @@ public class SellerDaoJDBC implements SellerDao {
     @Override
     public List<Seller> findAll() {
         return List.of();
+    }
+
+    @Override
+    public List<Seller> findByDepartment(Department department) {
+
+        PreparedStatement ps = null; //Nosso comando SQL
+        ResultSet rs = null; //Nosso resultado do BD
+
+        try {
+            ps = connection.prepareStatement(
+                    "SELECT seller.*, department.Name as DepName "
+                            + "FROM seller INNER JOIN department "
+                            + "ON seller.DepartmentId = department.Id "
+                            + "WHERE DepartmentId = ? "
+                            + "ORDER BY Name"
+            );
+
+            ps.setInt(1, department.getID());
+            rs = ps.executeQuery();
+
+            List<Seller> list = new ArrayList<>();
+            Map<Integer, Department> map = new HashMap<>(); //Para controlarmos que dep não terá múltiplas instâncias
+
+            //O resultado pode ter 0 ou mais valores, por isso usaremos while
+
+            while (rs.next()) {
+
+                //Checando se dep já existe
+                Department dep = map.get(rs.getInt("DepartmentId")); //Id de Dep que aparece em resultset. Se for nulo, ai sim instanciamos um depto
+
+                if(dep == null) {
+                    dep = instantiateDepartment(rs);
+                    map.put(rs.getInt("DepartmentId"), dep); //guardamos, na chave tal, o dep no map
+                }
+
+                Seller obj = instantiateSeller(rs, dep); //É o mesmo dep
+                list.add(obj);
+            }
+
+            return list;
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(ps);
+            DB.closeResultSet(rs);
+            //Não fechamos conexão aqui
+        }
+
     }
 
 }
