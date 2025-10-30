@@ -2,14 +2,18 @@ package application;
 
 import model.dao.DaoFactory;
 import model.dao.SellerDao;
+import model.dao.impl.SellerDaoJDBC;
 import model.entities.Department;
 import model.entities.Seller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 public class Program {
     public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
 
         SellerDao sellerDao = DaoFactory.createSellerDao(); //O programa não conhece a implementação,só a interface. É uma forma de injeção de dependência sem explicitar a implementação
 
@@ -33,11 +37,15 @@ public class Program {
             System.out.println(obj);
         }
 
+        /*
+
         System.out.println(" ");
         System.out.println("==== TEST 4: seller insert ===");
         Seller newSel = new Seller(null, "Greg", "greg@gmail.com", new Date(), 4000.0, department);
         sellerDao.insert(newSel); //Inserindo no BD
         System.out.println("Inserted! New ID = " + newSel.getId());
+
+         */
 
         System.out.println(" ");
         System.out.println("==== TEST 5: seller update ===");
@@ -45,6 +53,17 @@ public class Program {
         seller.setName("Martha Waine");
         sellerDao.update(seller);
         System.out.println("Update completed!");
+
+        System.out.println(" ");
+        System.out.println("==== TEST 6: seller delete ===");
+        System.out.println("Enter ID for delete test: ");
+        int id = sc.nextInt();
+        sc.nextLine();
+        sellerDao.deleteById(id);
+        System.out.println("Deletion completed!");
+
+        sc.close();
+
 
     }
 }
