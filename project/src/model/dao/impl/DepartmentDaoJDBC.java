@@ -6,7 +6,10 @@ import model.dao.DepartmentDao;
 import model.entities.Department;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DepartmentDaoJDBC implements DepartmentDao {
 
@@ -57,7 +60,34 @@ public class DepartmentDaoJDBC implements DepartmentDao {
     }
 
     @Override
-    public void update(Department obj) {
+    public void update(Integer id, String newName) {
+
+        Department obj = findById(id); //Instanciamos um dep temporariamente para usar o metodo. Aqui ele já é instanciado...
+        if(obj == null) {
+            throw new DbException("Department not found!");
+        } else {
+
+            PreparedStatement ps = null;
+
+            try {
+                ps = connection.prepareStatement("UPDATE department SET Name = ? WHERE Id =?", ps.RETURN_GENERATED_KEYS);
+
+                ps.setString(1, newName);
+                ps.setInt(2, id);
+
+                int rowsAffected = ps.executeUpdate(); //Fazemos o update, mas nao retorna nada
+                obj = findById(id); //Só pra atualizarmos nossa instância, que é antiga ainda
+                System.out.println(obj);
+
+            } catch (SQLException e) {
+                throw new DbException(e.getMessage());
+            } finally {
+                DB.closeStatement(ps);
+            }
+
+
+        }
+
 
     }
 
@@ -82,12 +112,64 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public Department findById(Integer id) {
-        return null;
+
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            ps = connection.prepareStatement("SELECT * FROM department WHERE ID = ?");
+
+            ps.setInt(1, id);
+            rs = ps.executeQuery(); //Para o BD devolver uma tabela temporaria num ResultSet que possamos manipular para instanciar o Department
+
+            if(rs.next()) {
+                Department obj = instantiateDepartment(rs);
+                return obj;
+            }
+
+            return null; //Porque caso ele nao complete o if acima, falha, retornando nulo
+
+        } catch (SQLException e) {
+            throw new  DbException("Error: " + e.getMessage());
+        } finally {
+            DB.closeStatement(ps);
+            DB.closeResultSet(rs);
+        }
+
     }
 
     @Override
     public List<Department> findAll() {
-        return List.of();
+
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            ps = connection.prepareStatement("SELECT * FROM department ORDER BY Name");
+            rs = ps.executeQuery(); //Executamos e voltamos o resultado a um resultset
+
+            List<Department> depList = new ArrayList<>();
+            while(rs.next()) {
+                Department dep =  instantiateDepartment(rs);
+                depList.add(dep);
+            }
+
+            return depList;
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(ps);
+        }
+
+    }
+
+    private Department instantiateDepartment(ResultSet rs) throws SQLException {
+        Department obj = new Department();
+        obj.setID(rs.getInt("Id"));
+        obj.setName(rs.getString("Name"));
+
+        return obj;
     }
 
 }

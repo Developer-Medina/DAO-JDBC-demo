@@ -21,7 +21,7 @@ public class Department implements Serializable {
 
     public Department(Integer ID, String name) {
         this.ID = ID;
-        Name = name;
+        this.Name = name;
     }
 
     //Getters n Setters

@@ -22,9 +22,9 @@ public class SelProgram {
 
         System.out.println(" ");
         System.out.println("==== TEST 2: Department findById ===");
-        Department department = new Department(2, null);
-        List<Seller> list = sellerDao.findByDepartment(department);
-        for (Seller obj : list) {
+        Department department = new Department(2, null); //Instancia um novo department sem nome
+        List<Seller> list = sellerDao.findByDepartment(department); //criamos uma lista de tipos Seller, e aplicamos nossa consulta com base no departamento. Os objetos ficarão guardados aqui após serem instanciados pelo metodo
+        for (Seller obj : list) { //Exibicao
             System.out.println(obj);
         }
 
